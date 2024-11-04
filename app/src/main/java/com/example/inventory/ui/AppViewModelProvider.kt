@@ -1,4 +1,3 @@
-
 package com.example.inventory.ui
 
 import android.app.Application
@@ -21,9 +20,11 @@ object AppViewModelProvider {
         // Initializer for ItemEditViewModel
         initializer {
             ItemEditViewModel(
-                this.createSavedStateHandle()
+                savedStateHandle = this.createSavedStateHandle(),
+                itemsRepository = inventoryApplication().container.itemsRepository
             )
         }
+
         // Initializer for ItemEntryViewModel
         initializer {
             ItemEntryViewModel(inventoryApplication().container.itemsRepository)
@@ -32,8 +33,8 @@ object AppViewModelProvider {
         // Initializer for ItemDetailsViewModel
         initializer {
             ItemDetailsViewModel(
-                this.createSavedStateHandle(),
-                inventoryApplication().container.itemsRepository
+                savedStateHandle = this.createSavedStateHandle(),
+                itemsRepository = inventoryApplication().container.itemsRepository
             )
         }
 
