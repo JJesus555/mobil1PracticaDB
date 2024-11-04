@@ -18,8 +18,7 @@ class HomeViewModel(
     }
 
     val homeUiState: StateFlow<HomeUiState> =
-        itemsRepository.getAllItemsStream()
-            .map { items -> HomeUiState(items) }
+        itemsRepository.getAllItemsStream().map { HomeUiState(it) }
             .stateIn(
                 scope = viewModelScope,
                 started = SharingStarted.WhileSubscribed(TIMEOUT_MILLIS),
