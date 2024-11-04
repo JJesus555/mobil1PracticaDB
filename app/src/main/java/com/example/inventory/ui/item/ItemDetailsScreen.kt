@@ -1,19 +1,3 @@
-/*
- * Copyright (C) 2023 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     https://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.example.inventory.ui.item
 
 import androidx.annotation.StringRes
@@ -21,13 +5,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -45,10 +26,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -57,14 +36,14 @@ import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.inventory.InventoryTopAppBar
 import com.example.inventory.R
 import com.example.inventory.data.Item
-import com.example.inventory.ui.AppViewModelProvider
+import androidx.compose.runtime.collectAsState
 import com.example.inventory.ui.navigation.NavigationDestination
 import com.example.inventory.ui.theme.InventoryTheme
-import kotlinx.coroutines.launch
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.inventory.ui.AppViewModelProvider
 
 object ItemDetailsDestination : NavigationDestination {
     override val route = "item_details"
@@ -72,6 +51,7 @@ object ItemDetailsDestination : NavigationDestination {
     const val itemIdArg = "itemId"
     val routeWithArgs = "$route/{$itemIdArg}"
 }
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -81,8 +61,9 @@ fun ItemDetailsScreen(
     modifier: Modifier = Modifier,
     viewModel: ItemDetailsViewModel = viewModel(factory = AppViewModelProvider.Factory)
 ) {
-    val uiState = viewModel.uiState.collectAsState()
-    val coroutineScope = rememberCoroutineScope()
+
+    val uiState by viewModel.uiState.collectAsState()
+
     Scaffold(
         topBar = {
             InventoryTopAppBar(
@@ -93,13 +74,9 @@ fun ItemDetailsScreen(
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { navigateToEditItem(uiState.value.itemDetails.id) },
+                onClick = { navigateToEditItem(0) },
                 shape = MaterialTheme.shapes.medium,
-                modifier = Modifier
-                    .padding(
-                        end = WindowInsets.safeDrawing.asPaddingValues()
-                            .calculateEndPadding(LocalLayoutDirection.current)
-                    )
+                modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_large))
             ) {
                 Icon(
                     imageVector = Icons.Default.Edit,
@@ -107,31 +84,24 @@ fun ItemDetailsScreen(
                 )
             }
         },
-        modifier = modifier,
+        modifier = modifier
     ) { innerPadding ->
+
         ItemDetailsBody(
-            itemDetailsUiState = uiState.value,
-            onSellItem = { viewModel.reduceQuantityByOne() },
-            onDelete = {
-                // Note: If the user rotates the screen very fast, the operation may get cancelled
-                // and the item may not be deleted from the Database. This is because when config
-                // change occurs, the Activity will be recreated and the rememberCoroutineScope will
-                // be cancelled - since the scope is bound to composition.
-                coroutineScope.launch {
-                    viewModel.deleteItem()
-                    navigateBack()
-                }
-            },
+            itemDetailsUiState = uiState,
+            onSellItem = {  },
+            onDelete = {  },
             modifier = Modifier
                 .padding(
                     start = innerPadding.calculateStartPadding(LocalLayoutDirection.current),
-                    top = innerPadding.calculateTopPadding(),
                     end = innerPadding.calculateEndPadding(LocalLayoutDirection.current),
+                    top = innerPadding.calculateTopPadding()
                 )
                 .verticalScroll(rememberScrollState())
         )
     }
 }
+
 
 @Composable
 private fun ItemDetailsBody(
@@ -145,14 +115,16 @@ private fun ItemDetailsBody(
         verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_medium))
     ) {
         var deleteConfirmationRequired by rememberSaveable { mutableStateOf(false) }
+
         ItemDetails(
-            item = itemDetailsUiState.itemDetails.toItem(), modifier = Modifier.fillMaxWidth()
+            item = itemDetailsUiState.itemDetails.toItem(),
+            modifier = Modifier.fillMaxWidth()
         )
         Button(
             onClick = onSellItem,
             modifier = Modifier.fillMaxWidth(),
             shape = MaterialTheme.shapes.small,
-            enabled = !itemDetailsUiState.outOfStock
+            enabled = true
         ) {
             Text(stringResource(R.string.sell))
         }
@@ -175,7 +147,6 @@ private fun ItemDetailsBody(
         }
     }
 }
-
 
 @Composable
 fun ItemDetails(
@@ -233,7 +204,7 @@ private fun ItemDetailsRow(
     @StringRes labelResID: Int, itemDetail: String, modifier: Modifier = Modifier
 ) {
     Row(modifier = modifier) {
-        Text(text = stringResource(labelResID))
+        Text(stringResource(labelResID))
         Spacer(modifier = Modifier.weight(1f))
         Text(text = itemDetail, fontWeight = FontWeight.Bold)
     }
@@ -249,12 +220,12 @@ private fun DeleteConfirmationDialog(
         modifier = modifier,
         dismissButton = {
             TextButton(onClick = onDeleteCancel) {
-                Text(text = stringResource(R.string.no))
+                Text(stringResource(R.string.no))
             }
         },
         confirmButton = {
             TextButton(onClick = onDeleteConfirm) {
-                Text(text = stringResource(R.string.yes))
+                Text(stringResource(R.string.yes))
             }
         })
 }
@@ -263,8 +234,13 @@ private fun DeleteConfirmationDialog(
 @Composable
 fun ItemDetailsScreenPreview() {
     InventoryTheme {
-        ItemDetailsBody(ItemDetailsUiState(
-            outOfStock = true, itemDetails = ItemDetails(1, "Pen", "$100", "10")
-        ), onSellItem = {}, onDelete = {})
+        ItemDetailsBody(
+            ItemDetailsUiState(
+                outOfStock = true,
+                itemDetails = ItemDetails(1, "Pen", "$100", "10")
+            ),
+            onSellItem = {},
+            onDelete = {}
+        )
     }
 }

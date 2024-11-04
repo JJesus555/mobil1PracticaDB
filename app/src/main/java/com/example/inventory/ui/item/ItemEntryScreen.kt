@@ -1,19 +1,3 @@
-/*
- * Copyright (C) 2023 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     https://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.example.inventory.ui.item
 
 import androidx.compose.foundation.layout.Arrangement
@@ -77,10 +61,6 @@ fun ItemEntryScreen(
             itemUiState = viewModel.itemUiState,
             onItemValueChange = viewModel::updateUiState,
             onSaveClick = {
-                // Note: If the user rotates the screen very fast, the operation may get cancelled
-                // and the item may not be saved in the Database. This is because when config
-                // change occurs, the Activity will be recreated and the rememberCoroutineScope will
-                // be cancelled - since the scope is bound to composition.
                 coroutineScope.launch {
                     viewModel.saveItem()
                     navigateBack()
@@ -89,8 +69,8 @@ fun ItemEntryScreen(
             modifier = Modifier
                 .padding(
                     start = innerPadding.calculateStartPadding(LocalLayoutDirection.current),
-                    top = innerPadding.calculateTopPadding(),
                     end = innerPadding.calculateEndPadding(LocalLayoutDirection.current),
+                    top = innerPadding.calculateTopPadding()
                 )
                 .verticalScroll(rememberScrollState())
                 .fillMaxWidth()
@@ -106,8 +86,8 @@ fun ItemEntryBody(
     modifier: Modifier = Modifier
 ) {
     Column(
-        modifier = modifier.padding(dimensionResource(id = R.dimen.padding_medium)),
-        verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_large))
+        verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_large)),
+        modifier = modifier.padding(dimensionResource(id = R.dimen.padding_medium))
     ) {
         ItemInputForm(
             itemDetails = itemUiState.itemDetails,
@@ -120,7 +100,7 @@ fun ItemEntryBody(
             shape = MaterialTheme.shapes.small,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text(text = stringResource(R.string.save_action))
+            Text(stringResource(R.string.save_action))
         }
     }
 }
