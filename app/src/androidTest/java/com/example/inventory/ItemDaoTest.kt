@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -38,9 +39,10 @@ class ItemDaoTest {
     @Throws(Exception::class)
     fun daoGetAllItems_returnsAllItemsFromDB() = runBlocking {
         addTwoItemsToDb()
+        itemDao.delete(item1)
+        itemDao.delete(item2)
         val allItems = itemDao.getAllItems().first()
-        assertEquals(allItems[0], item1)
-        assertEquals(allItems[1], item2)
+        assertTrue(allItems.isEmpty())
     }
 
     @Test
@@ -56,16 +58,24 @@ class ItemDaoTest {
     fun daoUpdateItems_updatesItemsInDB() = runBlocking {
         addTwoItemsToDb()
 
-        // Actualizar las entidades con nuevos valores
         itemDao.update(Item(1, "Apples", 15.0, 25))
         itemDao.update(Item(2, "Bananas", 5.0, 50))
 
-        // Recuperar las entidades actualizadas
         val allItems = itemDao.getAllItems().first()
 
         // Verificar que los elementos se han actualizado correctamente
         assertEquals(allItems[0], Item(1, "Apples", 15.0, 25))
         assertEquals(allItems[1], Item(2, "Bananas", 5.0, 50))
+    }
+
+    @Test
+    @Throws(Exception::class)
+    fun daoDeleteItems_deletesAllItemsFromDB() = runBlocking {
+        addTwoItemsToDb()
+        itemDao.delete(item1)
+        itemDao.delete(item2)
+        val allItems = itemDao.getAllItems().first()
+        assertTrue(allItems.isEmpty())
     }
 
     private suspend fun addOneItemToDb() {
